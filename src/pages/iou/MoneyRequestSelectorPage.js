@@ -22,6 +22,7 @@ import NewRequestAmountPage from './steps/NewRequestAmountPage';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import usePrevious from '../../hooks/usePrevious';
+import useMountEffect from '../../hooks/useMountEffect';
 
 const propTypes = {
     /** React Navigation route */
@@ -70,6 +71,11 @@ function MoneyRequestSelectorPage(props) {
     };
 
     const prevSelectedTab = usePrevious(props.selectedTab);
+
+    // reset money request info when screen is first loaded
+    useMountEffect(() => {
+        resetMoneyRequestInfo();
+    });
 
     useEffect(() => {
         if (prevSelectedTab === props.selectedTab) {
