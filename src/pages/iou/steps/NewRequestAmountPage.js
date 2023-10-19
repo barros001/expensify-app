@@ -94,6 +94,9 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     // Because we use Onyx to store IOU info, when we try to make two different money requests from different tabs,
     // it can result in an IOU sent with improper values. In such cases we want to reset the flow and redirect the user to the first step of the IOU.
     useEffect(() => {
+        const moneyRequestID = `${iouType}${reportID}`;
+        const shouldReset = iou.id !== moneyRequestID;
+
         if (isEditing) {
             // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
             if (prevMoneyRequestID.current !== iou.id) {
@@ -104,8 +107,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
                 return;
             }
-            const moneyRequestID = `${iouType}${reportID}`;
-            const shouldReset = iou.id !== moneyRequestID;
+
             if (shouldReset) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
@@ -113,6 +115,8 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             if (!isDistanceRequestTab && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
             }
+        } else if (shouldReset) {
+            IOU.resetMoneyRequestInfo(moneyRequestID);
         }
 
         return () => {
