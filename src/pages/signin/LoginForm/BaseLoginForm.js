@@ -86,20 +86,67 @@ const defaultProps = {
 function LoginForm(props) {
     const input = useRef();
     const [login, setLogin] = useState('');
-    const [formError, setFormError] = useState(false);
+    const [formError, setFormError] = useState(null);
     const prevIsVisible = usePrevious(props.isVisible);
 
     const {translate} = props;
 
     /**
-     * Handle text input and clear formError upon text change
+     * Normalize login input
+     *
+     * @param {String} inputLogin
+     * @returns {{parsedPhoneNumber: Object, loginTrim: String}}
+     */
+    function normalizeLogin(inputLogin) {
+        const loginTrim = inputLogin.trim();
+
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+
+        return {
+            loginTrim,
+            parsedPhoneNumber,
+        };
+    }
+
+    /**
+     * Validate form and return error message if there's any error
+     *
+     * @param {Object} normalizedLogin
+     * @param {String} normalizedLogin.loginTrim
+     * @param {Object} normalizedLogin.parsedPhoneNumber
+     * @returns {String|null}
+     */
+    const validateForm = useCallback(({loginTrim, parsedPhoneNumber}) => {
+        if (!loginTrim) {
+            return 'common.pleaseEnterEmailOrPhoneNumber';
+        }
+
+        if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
+            if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
+                return 'common.error.phoneNumber';
+            }
+
+            return 'loginForm.error.invalidFormatEmailLogin';
+        }
+
+        return null;
+    }, []);
+
+    /**
+     * Handle text input and clear formError upon text change if form is valid
      *
      * @param {String} text
      */
     const onTextInput = useCallback(
-        (text) => {
-            setLogin(text);
-            setFormError(null);
+        (newLogin) => {
+            setLogin(newLogin);
+
+            if (formError && newLogin !== '' && login !== '') {
+                setFormError(validateForm(normalizeLogin(newLogin)));
+            } else {
+                setFormError(null);
+            }
 
             if (props.account.errors || props.account.message) {
                 Session.clearAccountMessages();
@@ -110,7 +157,7 @@ function LoginForm(props) {
                 CloseAccount.setDefaultData();
             }
         },
-        [props.account, props.closeAccount, input, setFormError, setLogin],
+        [props.account, props.closeAccount, input, formError, setFormError, setLogin, validateForm, login],
     );
 
     function getSignInWithStyles() {
@@ -130,23 +177,15 @@ function LoginForm(props) {
             CloseAccount.setDefaultData();
         }
 
-        const loginTrim = login.trim();
-        if (!loginTrim) {
-            setFormError('common.pleaseEnterEmailOrPhoneNumber');
+        const normalizedLogin = normalizeLogin(login);
+        const error = validateForm(normalizedLogin);
+
+        if (error) {
+            setFormError(error);
             return;
         }
 
-        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
-        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
-
-        if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
-            if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
-                setFormError('common.error.phoneNumber');
-            } else {
-                setFormError('loginForm.error.invalidFormatEmailLogin');
-            }
-            return;
-        }
+        const {loginTrim, parsedPhoneNumber} = normalizedLogin;
 
         // If the user has entered a guide email, then we are going to enable an experimental Onyx mode to help with performance
         if (PolicyUtils.isExpensifyGuideTeam(loginTrim)) {
@@ -154,11 +193,9 @@ function LoginForm(props) {
             MemoryOnlyKeys.enable();
         }
 
-        setFormError(null);
-
         // Check if this login has an account associated with it or not
         Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, props.account, props.closeAccount, props.network, setFormError]);
+    }, [props.account, props.closeAccount, props.network, validateForm, login]);
 
     useEffect(() => {
         // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
