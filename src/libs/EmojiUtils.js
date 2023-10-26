@@ -370,7 +370,10 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
             if (i === emojiData.length - 1) {
-                emojiReplacement += ' ';
+                // Ensure emoji is at the end of the message before adding space
+                if (newText.indexOf(emojiData[i]) + emojiData[i].length === newText.length) {
+                    emojiReplacement += ' ';
+                }
             }
 
             newText = newText.replace(emojiData[i], emojiReplacement);
