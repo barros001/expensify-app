@@ -264,6 +264,7 @@ function ComposerWithSuggestions({
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
+            selection.end
         ],
     );
 
