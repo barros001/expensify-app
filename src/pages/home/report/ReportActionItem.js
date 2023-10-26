@@ -146,7 +146,7 @@ function ReportActionItem(props) {
     const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
-
+    const isPendingDelete = props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}), [isReportActionLinked]);
     const originalMessage = lodashGet(props.action, 'originalMessage', {});
 
@@ -154,7 +154,7 @@ function ReportActionItem(props) {
     const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
 
     // When active action changes, we need to update the `isContextMenuActive` state
-    const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
+    const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID) && !isPendingDelete;
     useEffect(() => {
         setIsContextMenuActive(isActiveReportActionForMenu);
     }, [isActiveReportActionForMenu]);
