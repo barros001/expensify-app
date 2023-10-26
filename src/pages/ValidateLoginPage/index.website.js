@@ -55,6 +55,7 @@ function ValidateLoginPage(props) {
     const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
     const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
     const cachedAccountID = lodashGet(props, 'credentials.accountID', null);
+    const isValidateCodeValid = validateCode.match(/^[0-9]{6}$/);
 
     useEffect(() => {
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
@@ -87,7 +88,8 @@ function ValidateLoginPage(props) {
             {autoAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
             {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <JustSignedInModal is2FARequired />}
             {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
-            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && (
+            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isValidateCodeValid && <ExpiredValidateCodeModal />}
+            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && isValidateCodeValid && (
                 <ValidateCodeModal
                     accountID={accountID}
                     code={validateCode}
