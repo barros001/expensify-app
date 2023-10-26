@@ -229,10 +229,9 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
-                const remainder = ComposerUtils.getCommonSuffixLength(commentValue, newComment);
                 setSelection({
-                    start: newComment.length - remainder,
-                    end: newComment.length - remainder,
+                    start: selection.end + (newComment.length - commentRef.current.length),
+                    end: selection.end + (newComment.length - commentRef.current.length),
                 });
             }
 
