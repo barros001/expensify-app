@@ -237,7 +237,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
+            const {text: newDraft, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -251,9 +251,10 @@ function ReportActionItemMessageEdit(props) {
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
+                const position = Math.max(selection.end + (newDraft.length - draftRef.current.length), selectionOverride.end);
                 setSelection({
-                    start: selection.end + (newDraft.length - draftRef.current.length),
-                    end: selection.end + (newDraft.length - draftRef.current.length),
+                    start: position,
+                    end: position,
                 });
             }
 

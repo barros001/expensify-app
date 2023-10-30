@@ -106,9 +106,20 @@ describe('EmojiTest', () => {
         expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄 ');
     });
 
-    it('will add a space after the last emoji if there is text after it', () => {
+    it('will add a space after the last emoji', () => {
+        const text = 'Hi :smile::wave:';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 ');
+    });
+
+    it('will not add a space after the last emoji if there is text after it', () => {
         const text = 'Hi :smile::wave:space after last emoji';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋space after last emoji');
+    });
+
+    it('will return correct caret position', () => {
+        const text = 'Hi :smile: there :wave:!';
+        console.log(lodashGet(EmojiUtils.replaceEmojis(text), 'selection'));
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'selection')).toStrictEqual({start: 14, end: 14});
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
@@ -259,7 +270,15 @@ describe('EmojiTest', () => {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the count should be increased and put into the very front of the other emoji within the same count
-                const expectedFrequentlyEmojisList = [frequentlyEmojisList[0], {...smileEmoji, count: 2, lastUpdatedAt: currentTime}, ...frequentlyEmojisList.slice(1, -1)];
+                const expectedFrequentlyEmojisList = [
+                    frequentlyEmojisList[0],
+                    {
+                        ...smileEmoji,
+                        count: 2,
+                        lastUpdatedAt: currentTime,
+                    },
+                    ...frequentlyEmojisList.slice(1, -1),
+                ];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
         });

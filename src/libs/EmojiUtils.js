@@ -248,7 +248,11 @@ function getFrequentlyUsedEmojis(newEmoji) {
             frequentEmojiList.splice(emojiIndex, 1);
         }
 
-        const updatedEmoji = {...Emojis.emojiCodeTableWithSkinTones[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
+        const updatedEmoji = {
+            ...Emojis.emojiCodeTableWithSkinTones[emoji.code],
+            count: currentEmojiCount,
+            lastUpdatedAt: currentTimestamp,
+        };
 
         // We want to make sure the current emoji is added to the list
         // Hence, we take one less than the current frequent used emojis
@@ -337,15 +341,16 @@ function getAddedEmojis(currentEmojis, formerEmojis) {
  */
 function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
     const trie = emojisTrie[lang];
+    const selection = {start: 0, end: 0};
     if (!trie) {
-        return {text, emojis: []};
+        return {text, emojis: [], selection};
     }
 
     let newText = text;
     const emojis = [];
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
-        return {text: newText, emojis};
+        return {text: newText, emojis, selection};
     }
     for (let i = 0; i < emojiData.length; i++) {
         const name = emojiData[i].slice(1, -1);
@@ -374,13 +379,18 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
                 if (newText.indexOf(emojiData[i]) + emojiData[i].length === newText.length) {
                     emojiReplacement += ' ';
                 }
+
+                // Set the cursor to the end of the last replaced Emoji. Note that we position after
+                // the extra space, if we added one.
+                selection.start = newText.indexOf(emojiData[i]) + emojiReplacement.length;
+                selection.end = selection.start;
             }
 
             newText = newText.replace(emojiData[i], emojiReplacement);
         }
     }
 
-    return {text: newText, emojis};
+    return {text: newText, emojis, selection};
 }
 
 /**
@@ -391,11 +401,12 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
  * @returns {Object}
  */
 function replaceAndExtractEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
-    const {text: convertedText = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
+    const {text: convertedText = '', emojis = [], selection} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
         text: convertedText,
         emojis: emojis.concat(extractEmojis(text)),
+        selection,
     };
 }
 

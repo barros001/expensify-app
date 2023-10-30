@@ -212,7 +212,7 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
+            const {text: newComment, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -229,9 +229,10 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
+                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), selectionOverride.end);
                 setSelection({
-                    start: selection.end + (newComment.length - commentRef.current.length),
-                    end: selection.end + (newComment.length - commentRef.current.length),
+                    start: position,
+                    end: position,
                 });
             }
 
@@ -264,7 +265,7 @@ function ComposerWithSuggestions({
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
-            selection.end
+            selection.end,
         ],
     );
 
