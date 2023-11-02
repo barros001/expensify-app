@@ -23,8 +23,10 @@ export default {
     componentBorderRadiusMedium: 6,
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
+    componentBorderRadiusXLarge: 28,
     componentBorderRadiusCard: 20,
     componentBorderRadiusRounded: 24,
+    componentBorderWidth: 8,
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
@@ -172,6 +174,7 @@ export default {
     reportActionImagesSingleImageHeight: 147,
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
+    reportActionItemImagesMoreCornerTriangleWidth: 40,
     bankCardWidth: 40,
     bankCardHeight: 26,
 
