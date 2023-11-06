@@ -342,7 +342,7 @@ function ReportActionItemMessageEdit(props) {
             start: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
             end: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
         }));
-        updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
+        updateDraft(ComposerUtils.insertText(draft, selection, emoji));
     };
 
     /**
