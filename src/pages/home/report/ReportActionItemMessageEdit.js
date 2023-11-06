@@ -20,6 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import {shouldAppendSpace} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -237,7 +238,8 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
+            const {text, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
+            let newDraft = text;
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -246,15 +248,21 @@ function ReportActionItemMessageEdit(props) {
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
-            emojisPresentBefore.current = emojis;
 
+            let cursorPosition = Math.max(selection.end + (newDraft.length - draftRef.current.length), selectionOverride.end);
+
+            if (shouldAppendSpace(newDraft, draftRef.current, selection, cursorPosition)) {
+                newDraft = ComposerUtils.insertText(newDraft, {start: cursorPosition, end: cursorPosition}, ' ');
+                cursorPosition += 1;
+            }
+
+            emojisPresentBefore.current = emojis;
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const position = Math.max(selection.end + (newDraft.length - draftRef.current.length), selectionOverride.end);
                 setSelection({
-                    start: position,
-                    end: position,
+                    start: cursorPosition,
+                    end: cursorPosition,
                 });
             }
 
