@@ -230,19 +230,19 @@ function ComposerWithSuggestions({
                 }
             }
 
-            let cursorPosition = Math.max(selection.end + (newComment.length - commentRef.current.length), selectionOverride.end);
+            let newCommentConverted = convertToLTRForComposer(newComment);
+            let cursorPosition = Math.max(selection.end + (newCommentConverted.length - commentRef.current.length), selectionOverride.end);
 
-            if (shouldAppendSpace(newComment, commentRef.current, selection, cursorPosition)) {
-                newComment = ComposerUtils.insertText(newComment, {start: cursorPosition, end: cursorPosition}, ' ');
+            if (shouldAppendSpace(newCommentConverted, commentRef.current, selection, cursorPosition)) {
+                newCommentConverted = ComposerUtils.insertText(newCommentConverted, {start: cursorPosition, end: cursorPosition}, ' ');
                 cursorPosition += 1;
             }
 
-            const newCommentConverted = convertToLTRForComposer(newComment);
             emojisPresentBefore.current = emojis;
             setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
             setValue(newCommentConverted);
 
-            if (commentValue !== newComment) {
+            if (commentValue !== newCommentConverted) {
                 setSelection({
                     start: cursorPosition,
                     end: cursorPosition,
