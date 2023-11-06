@@ -372,16 +372,8 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
                 types: checkEmoji.metaData.types,
             });
 
-            // If this is the last emoji in the message and it's the end of the message so far,
-            // add a space after it so the user can keep typing easily.
+            // Set the cursor to the end of the last replaced Emoji
             if (i === emojiData.length - 1) {
-                // Ensure emoji is at the end of the message before adding space
-                if (newText.indexOf(emojiData[i]) + emojiData[i].length === newText.length) {
-                    emojiReplacement += ' ';
-                }
-
-                // Set the cursor to the end of the last replaced Emoji. Note that we position after
-                // the extra space, if we added one.
                 selection.start = newText.indexOf(emojiData[i]) + emojiReplacement.length;
                 selection.end = selection.start;
             }
@@ -605,6 +597,27 @@ const getEmojiReactionDetails = (emojiName, reaction, currentUserAccountID) => {
     };
 };
 
+const isPreviousLetterEmoji = (text, index) => {
+    const inputBeforeIndex = text.substring(0, index);
+
+    // Use regex to find the last emoji in the text before the index
+    const matches = [...inputBeforeIndex.matchAll(CONST.REGEX.EMOJI)];
+    if (matches.length === 0) {
+        return false;
+    }
+
+    // Check if the last match ends at the specified index
+    const lastMatchEndIndex = matches[matches.length - 1].index + matches[matches.length - 1][0].length;
+    return lastMatchEndIndex === index;
+};
+
+const shouldAppendSpace = (text, previousText, previousSelection, currentCursorPosition) => {
+    return (
+        (text.length > previousText.length || previousText.substring(Math.min(previousSelection.start, previousSelection.end - 1), previousSelection.end).trim() !== '') &&
+        isPreviousLetterEmoji(text, currentCursorPosition)
+    );
+};
+
 export {
     findEmojiByName,
     findEmojiByCode,
@@ -627,4 +640,5 @@ export {
     getAddedEmojis,
     isFirstLetterEmoji,
     hasAccountIDEmojiReacted,
+    shouldAppendSpace,
 };

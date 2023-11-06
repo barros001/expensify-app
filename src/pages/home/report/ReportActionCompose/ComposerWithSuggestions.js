@@ -17,6 +17,7 @@ import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import {shouldAppendSpace} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -197,50 +198,6 @@ function ComposerWithSuggestions({
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
 
-    /**
-     * Find the newly added characters between the previous text and the new text based on the selection.
-     *
-     * @param {string} prevText - The previous text.
-     * @param {string} newText - The new text.
-     * @returns {object} An object containing information about the newly added characters.
-     * @property {number} startIndex - The start index of the newly added characters in the new text.
-     * @property {number} endIndex - The end index of the newly added characters in the new text.
-     * @property {string} diff - The newly added characters.
-     */
-    const findNewlyAddedChars = useCallback(
-        (prevText, newText) => {
-            let startIndex = -1;
-            let endIndex = -1;
-            let currentIndex = 0;
-
-            // Find the first character mismatch with newText
-            while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText.charAt(currentIndex) && selection.start > currentIndex) {
-                currentIndex++;
-            }
-
-            if (currentIndex < newText.length) {
-                startIndex = currentIndex;
-
-                // if text is getting pasted over find length of common suffix and subtract it from new text length
-                if (selection.end - selection.start > 0) {
-                    const commonSuffixLength = ComposerUtils.getCommonSuffixLength(prevText, newText);
-                    endIndex = newText.length - commonSuffixLength;
-                } else {
-                    endIndex = currentIndex + (newText.length - prevText.length);
-                }
-            }
-
-            return {
-                startIndex,
-                endIndex,
-                diff: newText.substring(startIndex, endIndex),
-            };
-        },
-        [selection.end, selection.start],
-    );
-
-    const insertWhiteSpace = (text, index) => `${text.slice(0, index)} ${text.slice(index)}`;
-
     const debouncedSaveReportComment = useMemo(
         () =>
             _.debounce((selectedReportID, newComment) => {
@@ -258,13 +215,8 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
-            const isEmojiInserted = diff.length && endIndex > startIndex && EmojiUtils.containsOnlyEmojis(diff);
-            const {text: newComment, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(
-                isEmojiInserted ? insertWhiteSpace(commentValue, endIndex) : commentValue,
-                preferredSkinTone,
-                preferredLocale,
-            );
+            const {text, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
+            let newComment = text;
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -277,15 +229,23 @@ function ComposerWithSuggestions({
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
+
+            let cursorPosition = Math.max(selection.end + (newComment.length - commentRef.current.length), selectionOverride.end);
+
+            if (shouldAppendSpace(newComment, commentRef.current, selection, cursorPosition)) {
+                newComment = ComposerUtils.insertText(newComment, {start: cursorPosition, end: cursorPosition}, ' ');
+                cursorPosition += 1;
+            }
+
             const newCommentConverted = convertToLTRForComposer(newComment);
             emojisPresentBefore.current = emojis;
             setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
             setValue(newCommentConverted);
+
             if (commentValue !== newComment) {
-                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), selectionOverride.end);
                 setSelection({
-                    start: position,
-                    end: position,
+                    start: cursorPosition,
+                    end: cursorPosition,
                 });
             }
 
@@ -311,7 +271,6 @@ function ComposerWithSuggestions({
         },
         [
             raiseIsScrollLikelyLayoutTriggered,
-            findNewlyAddedChars,
             preferredSkinTone,
             preferredLocale,
             setIsCommentEmpty,
