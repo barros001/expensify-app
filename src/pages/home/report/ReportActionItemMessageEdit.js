@@ -246,7 +246,7 @@ function ReportActionItemMessageEdit(props) {
      * @param {String} newDraftInput
      */
     const updateDraft = useCallback(
-        (newDraftInput) => {
+        (newDraftInput, forceUpdateSelection = false) => {
             const {text, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
             let newDraft = text;
 
@@ -268,7 +268,7 @@ function ReportActionItemMessageEdit(props) {
             emojisPresentBefore.current = emojis;
             setDraft(newDraft);
 
-            if (newDraftInput !== newDraft) {
+            if (newDraftInput !== newDraft || forceUpdateSelection) {
                 setSelection({
                     start: cursorPosition,
                     end: cursorPosition,
@@ -347,11 +347,7 @@ function ReportActionItemMessageEdit(props) {
      * @param {String} emoji
      */
     const addEmojiToTextBox = (emoji) => {
-        setSelection((prevSelection) => ({
-            start: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
-            end: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
-        }));
-        updateDraft(ComposerUtils.insertText(draft, selection, emoji));
+        updateDraft(ComposerUtils.insertText(draft, selection, emoji), true);
     };
 
     /**

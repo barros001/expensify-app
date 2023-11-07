@@ -212,9 +212,10 @@ function ComposerWithSuggestions({
      *
      * @param {String} comment
      * @param {Boolean} shouldDebounceSaveComment
+     * @param {Boolean} forceUpdateSelection
      */
     const updateComment = useCallback(
-        (commentValue, shouldDebounceSaveComment) => {
+        (commentValue, shouldDebounceSaveComment = false, forceUpdateSelection = false) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {text: newComment, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
@@ -248,7 +249,7 @@ function ComposerWithSuggestions({
             setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
             setValue(newCommentConverted);
 
-            if (commentValue !== newCommentConverted) {
+            if (commentValue !== newCommentConverted || forceUpdateSelection) {
                 setSelection({
                     start: cursorPosition,
                     end: cursorPosition,
@@ -334,14 +335,8 @@ function ComposerWithSuggestions({
      * @param {Boolean} shouldAddTrailSpace
      */
     const replaceSelectionWithText = useCallback(
-        (text, shouldAddTrailSpace = true) => {
-            const updatedText = shouldAddTrailSpace ? `${text} ` : text;
-            const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, updatedText));
-            setSelection((prevSelection) => ({
-                start: prevSelection.start + text.length + selectionSpaceLength,
-                end: prevSelection.start + text.length + selectionSpaceLength,
-            }));
+        (text) => {
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, text), false, true);
         },
         [selection, updateComment],
     );
@@ -464,8 +459,11 @@ function ComposerWithSuggestions({
                 return;
             }
 
+            // if we don't prevent default, we end up with duplicated character in composer
+            e.preventDefault();
+            replaceSelectionWithText(e.key);
+            // focus after updating the text to avoid selection being pushed to the end by RNTextInput
             focus();
-            replaceSelectionWithText(e.key, false);
         },
         [checkComposerVisibility, focus, replaceSelectionWithText],
     );
