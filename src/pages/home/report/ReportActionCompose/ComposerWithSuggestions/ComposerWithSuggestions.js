@@ -216,8 +216,7 @@ function ComposerWithSuggestions({
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {text, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
-            let newComment = text;
+            const {text: newComment, emojis, selection: selectionOverride} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (!_.isEmpty(newEmojis)) {
@@ -234,7 +233,14 @@ function ComposerWithSuggestions({
             let cursorPosition = Math.max(selection.end + (newCommentConverted.length - commentRef.current.length), selectionOverride.end);
 
             if (shouldAppendSpace(newCommentConverted, commentRef.current, selection, cursorPosition)) {
-                newCommentConverted = ComposerUtils.insertText(newCommentConverted, {start: cursorPosition, end: cursorPosition}, ' ');
+                newCommentConverted = ComposerUtils.insertText(
+                    newCommentConverted,
+                    {
+                        start: cursorPosition,
+                        end: cursorPosition,
+                    },
+                    ' ',
+                );
                 cursorPosition += 1;
             }
 
@@ -270,10 +276,6 @@ function ComposerWithSuggestions({
             }
         },
         [
-            raiseIsScrollLikelyLayoutTriggered,
-            preferredSkinTone,
-            preferredLocale,
-            setIsCommentEmpty,
             debouncedUpdateFrequentlyUsedEmojis,
             preferredLocale,
             preferredSkinTone,
@@ -282,7 +284,7 @@ function ComposerWithSuggestions({
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
-            selection.end,
+            selection,
         ],
     );
 

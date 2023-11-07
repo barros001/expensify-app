@@ -13,6 +13,8 @@ import emojisTrie from './EmojiTrie';
 type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
 type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
+type Selection = {start: number; end: number};
+type ReplacedEmoji = {text: string; emojis: Emoji[]; selection: Selection};
 type UserReactions = {
     id: string;
     skinTones: Record<number, string>;
@@ -240,11 +242,7 @@ function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji
             frequentEmojiList.splice(emojiIndex, 1);
         }
 
-        const updatedEmoji = {
-            ...Emojis.emojiCodeTableWithSkinTones[emoji.code],
-            count: currentEmojiCount,
-            lastUpdatedAt: currentTimestamp,
-        };
+        const updatedEmoji = {...Emojis.emojiCodeTableWithSkinTones[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
 
         // We want to make sure the current emoji is added to the list
         // Hence, we take one less than the current frequent used emojis
@@ -324,7 +322,7 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
-function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT) {
+function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     const trie = emojisTrie[lang];
     const selection = {start: 0, end: 0};
     if (!trie) {
@@ -549,7 +547,7 @@ const getEmojiReactionDetails = (emojiName: string, reaction: UsersReactionsList
     };
 };
 
-const isPreviousLetterEmoji = (text, index) => {
+const isPreviousLetterEmoji = (text: string, index: number) => {
     const inputBeforeIndex = text.substring(0, index);
 
     // Use regex to find the last emoji in the text before the index
@@ -559,15 +557,16 @@ const isPreviousLetterEmoji = (text, index) => {
     }
 
     // Check if the last match ends at the specified index
-    const lastMatchEndIndex = matches[matches.length - 1].index + matches[matches.length - 1][0].length;
+    const lastMatchEndIndex = (matches[matches.length - 1].index ?? 0) + matches[matches.length - 1][0].length;
     return lastMatchEndIndex === index;
 };
 
-const shouldAppendSpace = (text, previousText, previousSelection, currentCursorPosition) => {
-    return (
-        (text.length > previousText.length || previousText.substring(Math.min(previousSelection.start, previousSelection.end - 1), previousSelection.end).trim() !== '') &&
-        isPreviousLetterEmoji(text, currentCursorPosition)
-    );
+const shouldAppendSpace = (text: string, previousText: string, previousSelection: Selection, currentCursorPosition: number): boolean => {
+    if (!isPreviousLetterEmoji(text, currentCursorPosition)) {
+        return false;
+    }
+
+    return text.length > previousText.length || previousText.substring(Math.min(previousSelection.start, previousSelection.end - 1), previousSelection.end).trim() !== '';
 };
 
 export {
