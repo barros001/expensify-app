@@ -349,7 +349,7 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
             }
         }
         if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
-            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
+            const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
             emojis.push({
                 name,
                 code: checkEmoji.metaData?.code,
@@ -362,18 +362,6 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
 
             newText = newText.replace(emoji, emojiReplacement);
         }
-    }
-
-    // cursorPosition, when not undefined, points to the end of the last emoji that was replaced.
-    // In that case we want to append a space at the cursor position, but only if the next character
-    // is not already a space (to avoid double spaces).
-    if (cursorPosition && cursorPosition > 0) {
-        const space = ' ';
-
-        if (newText.charAt(cursorPosition) !== space) {
-            newText = newText.slice(0, cursorPosition) + space + newText.slice(cursorPosition);
-        }
-        cursorPosition += space.length;
     }
 
     return {text: newText, emojis, cursorPosition};

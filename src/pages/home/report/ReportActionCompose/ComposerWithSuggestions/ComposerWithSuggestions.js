@@ -213,7 +213,7 @@ function ComposerWithSuggestions({
      * @param {Boolean} shouldDebounceSaveComment
      */
     const updateComment = useCallback(
-        (commentValue, shouldDebounceSaveComment) => {
+        (commentValue, shouldDebounceSaveComment = false, updateSelection = false) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentValue, preferredSkinTone, preferredLocale);
             if (!_.isEmpty(emojis)) {
@@ -227,12 +227,22 @@ function ComposerWithSuggestions({
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
-            const newCommentConverted = convertToLTRForComposer(newComment);
+
+            const newCommentConvertedBeforeSpace = convertToLTRForComposer(newComment);
+            const {
+                text: newCommentConverted,
+                cursor: position,
+                added: spaceAdded,
+            } = ComposerUtils.appendSpaceAfterEmoji(
+                newCommentConvertedBeforeSpace,
+                commentRef.current,
+                Math.max(selection.end + (newCommentConvertedBeforeSpace.length - commentRef.current.length), cursorPosition || 0),
+            );
+
             emojisPresentBefore.current = emojis;
             setIsCommentEmpty(!!newCommentConverted.match(/^(\s)*$/));
             setValue(newCommentConverted);
-            if (commentValue !== newComment) {
-                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
+            if (commentValue !== newComment || spaceAdded || updateSelection) {
                 setSelection({
                     start: position,
                     end: position,
@@ -318,14 +328,8 @@ function ComposerWithSuggestions({
      * @param {Boolean} shouldAddTrailSpace
      */
     const replaceSelectionWithText = useCallback(
-        (text, shouldAddTrailSpace = true) => {
-            const updatedText = shouldAddTrailSpace ? `${text} ` : text;
-            const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, updatedText));
-            setSelection((prevSelection) => ({
-                start: prevSelection.start + text.length + selectionSpaceLength,
-                end: prevSelection.start + text.length + selectionSpaceLength,
-            }));
+        (text) => {
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, text), false, true);
         },
         [selection, updateComment],
     );
@@ -448,8 +452,12 @@ function ComposerWithSuggestions({
                 return;
             }
 
+            // if we don't prevent default, we end up with duplicated character in composer
+            e.preventDefault();
+            replaceSelectionWithText(e.key);
+
+            // focus after updating the text to avoid selection being pushed to the end by RNTextInput
             focus();
-            replaceSelectionWithText(e.key, false);
         },
         [checkComposerVisibility, focus, replaceSelectionWithText],
     );

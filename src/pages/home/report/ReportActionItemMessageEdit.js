@@ -239,8 +239,8 @@ function ReportActionItemMessageEdit(props) {
      * @param {String} newDraftInput
      */
     const updateDraft = useCallback(
-        (newDraftInput) => {
-            const {text: newDraft, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
+        (newDraftInput, updateSelection = false) => {
+            const {text: newDraftTmp, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -251,10 +251,15 @@ function ReportActionItemMessageEdit(props) {
             }
             emojisPresentBefore.current = emojis;
 
+            const {
+                text: newDraft,
+                cursor: position,
+                added: spaceAdded,
+            } = ComposerUtils.appendSpaceAfterEmoji(newDraftTmp, draftRef.current, Math.max(selection.end + (newDraftTmp.length - draftRef.current.length), cursorPosition || 0));
+
             setDraft(newDraft);
 
-            if (newDraftInput !== newDraft) {
-                const position = Math.max(selection.end + (newDraft.length - draftRef.current.length), cursorPosition || 0);
+            if (newDraftInput !== newDraft || spaceAdded || updateSelection) {
                 setSelection({
                     start: position,
                     end: position,
@@ -333,11 +338,7 @@ function ReportActionItemMessageEdit(props) {
      * @param {String} emoji
      */
     const addEmojiToTextBox = (emoji) => {
-        setSelection((prevSelection) => ({
-            start: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
-            end: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
-        }));
-        updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
+        updateDraft(ComposerUtils.insertText(draft, selection, emoji), true);
     };
 
     /**

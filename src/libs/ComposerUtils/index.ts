@@ -1,4 +1,5 @@
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import CONST from '@src/CONST';
 import getNumberOfLines from './getNumberOfLines';
 import updateNumberOfLines from './updateNumberOfLines';
 
@@ -23,19 +24,53 @@ function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boo
     return (isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen()) || isKeyboardShown;
 }
 
-/**
- * Returns the length of the common suffix between two input strings.
- * The common suffix is the number of characters shared by both strings
- * at the end (suffix) until a mismatch is encountered.
- *
- * @returns The length of the common suffix between the strings.
- */
-function getCommonSuffixLength(str1: string, str2: string): number {
+function calculateTextDiff(text: string, previousText: string, cursor: number) {
+    const split = [text.slice(0, cursor), text.slice(cursor, text.length)];
+    const suffix = split[1];
+    const previousTextWithoutSuffix = previousText.substring(0, previousText.length - suffix.length);
+
+    let prefix = '';
     let i = 0;
-    while (str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {
+    while (i < previousTextWithoutSuffix.length && previousTextWithoutSuffix[i] === split[0][i]) {
+        prefix += split[0][i];
         i++;
     }
-    return i;
+
+    const removed = previousText.substring(i, previousText.length - suffix.length);
+    const added = text.substring(i, text.length - suffix.length);
+
+    return {prefix, removed, added, suffix};
 }
 
-export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, getCommonSuffixLength};
+const isPreviousLetterEmoji = (text: string, index: number) => {
+    const inputBeforeIndex = text.substring(0, index);
+
+    // Use regex to find the last emoji in the text before the index
+    const matches = [...inputBeforeIndex.matchAll(CONST.REGEX.EMOJI)];
+    if (matches.length === 0) {
+        return false;
+    }
+
+    // Check if the last match ends at the specified index
+    const lastMatchEndIndex = (matches[matches.length - 1].index ?? 0) + matches[matches.length - 1][0].length;
+    return lastMatchEndIndex === index;
+};
+
+function appendSpaceAfterEmoji(text: string, previousText: string, cursor: number) {
+    const {added} = calculateTextDiff(text, previousText, cursor);
+
+    if (!isPreviousLetterEmoji(added, added.length)) {
+        return {text, cursor, added: false};
+    }
+
+    // add space after cursor, only if next char is not already a space
+    const space = ' ';
+
+    if (text.charAt(cursor) === space) {
+        return {text, cursor: cursor + space.length, added: true};
+    }
+
+    return {text: insertText(text, {start: cursor, end: cursor}, space), cursor: cursor + space.length, added: true};
+}
+
+export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, appendSpaceAfterEmoji};
