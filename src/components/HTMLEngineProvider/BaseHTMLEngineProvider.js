@@ -51,6 +51,7 @@ const customHTMLElementModels = {
     }),
     'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
     'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
+    emoji: defaultHTMLElementModels.span.extend({tagName: 'emoji'}),
 };
 
 const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};

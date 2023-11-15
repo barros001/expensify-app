@@ -1,6 +1,7 @@
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import EditedRenderer from './EditedRenderer';
+import EmojiRenderer from './EmojiRenderer';
 import ImageRenderer from './ImageRenderer';
 import MentionHereRenderer from './MentionHereRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
@@ -18,6 +19,7 @@ export default {
     // Custom tag renderers
     edited: EditedRenderer,
     pre: PreRenderer,
+    emoji: EmojiRenderer,
     'mention-user': MentionUserRenderer,
     'mention-here': MentionHereRenderer,
 };
