@@ -25,14 +25,14 @@ function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boo
 }
 
 function calculateTextDiff(text: string, previousText: string, cursor: number) {
-    const split = [text.slice(0, cursor), text.slice(cursor, text.length)];
-    const suffix = split[1];
+    const remaining = text.slice(0, cursor);
+    const suffix = text.slice(cursor, text.length);
     const previousTextWithoutSuffix = previousText.substring(0, previousText.length - suffix.length);
 
     let prefix = '';
     let i = 0;
-    while (i < previousTextWithoutSuffix.length && previousTextWithoutSuffix[i] === split[0][i]) {
-        prefix += split[0][i];
+    while (i < previousTextWithoutSuffix.length && previousTextWithoutSuffix[i] === remaining[i]) {
+        prefix += remaining[i];
         i++;
     }
 
