@@ -132,14 +132,6 @@ const MenuItem = React.forwardRef((props, ref) => {
 
         if (props.shouldParseTitle) {
             title = html;
-
-            // wrap all emojis in <emoji></emoji> tags
-            const emojis = _.uniq(title.match(CONST.REGEX.EMOJIS));
-            if (emojis) {
-                emojis.forEach((emoji) => {
-                    title = title.replaceAll(emoji, `<emoji>${emoji}</emoji>`);
-                });
-            }
         }
 
         return title ? `<comment>${title}</comment>` : '';
