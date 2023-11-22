@@ -24,6 +24,7 @@ function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boo
     return (isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen()) || isKeyboardShown;
 }
 
+<<<<<<< HEAD
 function calculateTextDiff(text: string, previousText: string, cursor: number) {
     const remaining = text.slice(0, cursor);
     const suffix = text.slice(cursor, text.length);
