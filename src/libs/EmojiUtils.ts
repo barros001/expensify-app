@@ -364,18 +364,6 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
         }
     }
 
-    // cursorPosition, when not undefined, points to the end of the last emoji that was replaced.
-    // In that case we want to append a space at the cursor position, but only if the next character
-    // is not already a space (to avoid double spaces).
-    if (cursorPosition && cursorPosition > 0) {
-        const space = ' ';
-
-        if (newText.charAt(cursorPosition) !== space) {
-            newText = newText.slice(0, cursorPosition) + space + newText.slice(cursorPosition);
-        }
-        cursorPosition += space.length;
-    }
-
     return {text: newText, emojis, cursorPosition};
 }
 
