@@ -16,6 +16,7 @@ const fontFamily: FontFamilyStyles = {
     MONOSPACE_ITALIC: 'ExpensifyMono-Regular, Segoe UI Emoji, Noto Color Emoji',
     MONOSPACE_BOLD: 'ExpensifyMono-Bold, Segoe UI Emoji, Noto Color Emoji',
     MONOSPACE_BOLD_ITALIC: 'ExpensifyMono-Bold, Segoe UI Emoji, Noto Color Emoji',
+    EMOJI: 'Segoe UI Emoji, Noto Color Emoji',
 };
 
 if (getOperatingSystem() === CONST.OS.WINDOWS) {

@@ -10,7 +10,8 @@ type FontFamilyKeys =
     | 'MONOSPACE'
     | 'MONOSPACE_ITALIC'
     | 'MONOSPACE_BOLD'
-    | 'MONOSPACE_BOLD_ITALIC';
+    | 'MONOSPACE_BOLD_ITALIC'
+    | 'EMOJI';
 
 type FontFamilyStyles = Record<FontFamilyKeys, NonNullable<TextStyle['fontFamily']>>;
 
