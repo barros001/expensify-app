@@ -44,7 +44,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableInitialHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={EditRequestAmountPage.displayName}
         >
             <HeaderWithBackButton title={translate('iou.amount')} />

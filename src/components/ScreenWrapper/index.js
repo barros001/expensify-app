@@ -25,7 +25,7 @@ const ScreenWrapper = React.forwardRef(
     (
         {
             shouldEnableMaxHeight,
-            shouldEnableMinHeight,
+            shouldEnableInitialHeight,
             includePaddingTop,
             keyboardAvoidingViewBehavior,
             includeSafeAreaPaddingBottom,
@@ -51,7 +51,7 @@ const ScreenWrapper = React.forwardRef(
         const navigation = useNavigation();
         const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
         const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
-        const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
+        const height = shouldEnableInitialHeight ? initialHeight : undefined;
         const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
 
         const isKeyboardShownRef = useRef();
@@ -128,7 +128,7 @@ const ScreenWrapper = React.forwardRef(
                     return (
                         <View
                             ref={ref}
-                            style={[styles.flex1, {minHeight}]}
+                            style={[styles.flex1, {height}]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...(isDevelopment ? panResponder.panHandlers : {})}
                             testID={testID}
